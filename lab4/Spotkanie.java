@@ -67,10 +67,10 @@ public class Spotkanie {
                 " at " + this.startTime.getHour() + ":" + this.startTime.getMinute() + " - " +
                 this.endTime.getHour() + ":" + this.endTime.getMinute() + "\nNazwa: " + this.name;
         if (this.id != null) {
-            return "Spotkanie ID:" + this.id + " on " + data;
+            return "Spotkanie ID:" + this.id + "\non " + data + "\nPRIORITY: " + this.getPriority().name();
         }
         else {
-            return "Spotkanie" + data;
+            return "Spotkanie" + data + "\nPRIORITY: " + this.getPriority().name();
         }
     }
 

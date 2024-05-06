@@ -28,9 +28,8 @@ public class KalendarzUI {
     private static void displayMeetings(Kalendarz calendar, ArrayList<Spotkanie> meetings) {
         if (!meetings.isEmpty()) {
             System.out.println("Here are the meetings for your desired weekday:");
-            meetings.forEach((meeting) -> {
-                System.out.println(meeting);
-            });
+            meetings.forEach((meeting) -> System.out.println(meeting));
+
             System.out.println();
         }
         else {
@@ -145,8 +144,8 @@ public class KalendarzUI {
         while (continueLoop) {
             System.out.println("""
                     Options:
-                    1. Add grade
-                    2. Delete grade by ID
+                    1. Add meeting
+                    2. Delete meeting by ID
                     3. Display all meetings by weekday (1-7)
                     4. Display all meetings of a given priority by weekday (1-7)
                     5. Display all meetings before a given hour by weekday (1-7)
