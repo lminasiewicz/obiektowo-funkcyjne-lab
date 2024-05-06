@@ -6,7 +6,7 @@ import java.time.LocalDate;
 public class Kalendarz {
     private final ArrayList<Spotkanie>[] meetings;
     private int nextId;
-    private final LocalDate startDate;
+    private final LocalDate START_DATE;
 
     public Kalendarz() {
         this.nextId = 0;
@@ -14,11 +14,11 @@ public class Kalendarz {
         for (int i = 0; i < 7; i++) {
             this.meetings[i] = new ArrayList<Spotkanie>();
         }
-        this.startDate = LocalDate.now();
+        this.START_DATE = LocalDate.now();
     }
 
     public LocalDate getStartDate() {
-        return this.startDate;
+        return this.START_DATE;
     }
 
     public void addMeeting(int weekday, Spotkanie meeting) {
@@ -34,11 +34,7 @@ public class Kalendarz {
         placeholder.setId(id);
         for (int weekday = 0; weekday < 7; weekday++) {
             int finalWeekday = weekday;
-            this.meetings[weekday].forEach((meeting) -> {
-                if (meeting.getId() == id) {
-                   this.meetings[finalWeekday].remove(placeholder);
-                }
-            });
+            this.meetings[finalWeekday].remove(placeholder);
         }
     }
 
@@ -72,8 +68,8 @@ public class Kalendarz {
         this.addMeeting(1, new Spotkanie(25, 4, 2024, 9, 30, 10, 30, Priority.LOW, "Test2"));
         this.addMeeting(1, new Spotkanie(25, 4, 2024, 11, 00, 12, 00, Priority.LOW, "Test3"));
         this.addMeeting(1, new Spotkanie(25, 4, 2024, 15, 30, 16, 00, Priority.HIGHEST, "Test4"));
-        this.addMeeting(2, new Spotkanie(25, 4, 2024, 14, 30, 15, 30, Priority.HIGH, "Test5"));
-        this.addMeeting(3, new Spotkanie(25, 4, 2024, 8, 20, 9, 20, Priority.LOW, "Test6"));
-        this.addMeeting(3, new Spotkanie(25, 4, 2024, 11, 30, 12, 10, Priority.HIGH, "Test7"));
+        this.addMeeting(1, new Spotkanie(25, 4, 2024, 14, 30, 15, 30, Priority.HIGH, "Test5"));
+        this.addMeeting(1, new Spotkanie(25, 4, 2024, 8, 20, 9, 20, Priority.LOW, "Test6"));
+        this.addMeeting(1, new Spotkanie(25, 4, 2024, 11, 30, 12, 10, Priority.HIGHEST, "Test7"));
     }
 }

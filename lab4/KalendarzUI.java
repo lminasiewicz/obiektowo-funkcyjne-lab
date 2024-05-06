@@ -1,6 +1,5 @@
 import java.util.Scanner;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.ArrayList;
 
 public class KalendarzUI {
@@ -27,10 +26,12 @@ public class KalendarzUI {
 
     private static void displayMeetings(Kalendarz calendar, ArrayList<Spotkanie> meetings) {
         if (!meetings.isEmpty()) {
+            System.out.println("--------------------=====--------------------");
             System.out.println("Here are the meetings for your desired weekday:");
             meetings.forEach((meeting) -> {
-                System.out.println(meeting);
+                System.out.println("\n" + meeting);
             });
+            System.out.println("--------------------=====--------------------");
             System.out.println();
         }
         else {
@@ -54,7 +55,6 @@ public class KalendarzUI {
         int startMinute = startTimeArgs[1];
         int endHour = endTimeArgs[0];
         int endMinute = endTimeArgs[1];
-        System.out.println("" + startHour + startMinute + endHour + endMinute);
 
         if (startHour >= 0 && startMinute >= 0 && endHour >= 0 && endMinute >= 0 &&
         startHour < 24 && startMinute < 60 && endHour < 24 && endMinute < 60 && day >= 0 && day <= 6
@@ -145,8 +145,8 @@ public class KalendarzUI {
         while (continueLoop) {
             System.out.println("""
                     Options:
-                    1. Add grade
-                    2. Delete grade by ID
+                    1. Add meeting
+                    2. Delete meeting by ID
                     3. Display all meetings by weekday (1-7)
                     4. Display all meetings of a given priority by weekday (1-7)
                     5. Display all meetings before a given hour by weekday (1-7)
