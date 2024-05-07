@@ -1,7 +1,7 @@
 import java.util.Scanner;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.function.Predicate;
 
 public class KalendarzUI {
 
@@ -25,11 +25,12 @@ public class KalendarzUI {
         }
     }
 
-    private static void displayMeetings(Kalendarz calendar, ArrayList<Spotkanie> meetings) {
+    private static void displayMeetings(ArrayList<Spotkanie> meetings) {
         if (!meetings.isEmpty()) {
+            System.out.println("--------------------=====--------------------");
             System.out.println("Here are the meetings for your desired weekday:");
-            meetings.forEach((meeting) -> System.out.println(meeting));
-
+            meetings.forEach((meeting) -> System.out.println("\n" + meeting));
+            System.out.println("--------------------=====--------------------");
             System.out.println();
         }
         else {
@@ -53,7 +54,6 @@ public class KalendarzUI {
         int startMinute = startTimeArgs[1];
         int endHour = endTimeArgs[0];
         int endMinute = endTimeArgs[1];
-        System.out.println("" + startHour + startMinute + endHour + endMinute);
 
         if (startHour >= 0 && startMinute >= 0 && endHour >= 0 && endMinute >= 0 &&
         startHour < 24 && startMinute < 60 && endHour < 24 && endMinute < 60 && day >= 0 && day <= 6
@@ -65,8 +65,8 @@ public class KalendarzUI {
             else {
                 LocalDate meetingDate = calendar.getStartDate().plusDays(day);
                 Spotkanie meeting = new Spotkanie(meetingDate.getDayOfMonth(), meetingDate.getMonthValue(),
-                        meetingDate.getYear(), startHour, startMinute, endHour, endMinute, priority, desc);
-                calendar.addMeeting(day, meeting);
+                        meetingDate.getYear(), startHour, startMinute, endHour, endMinute, priority, desc, day);
+                calendar.addMeeting(meeting);
                 System.out.println("Meeting added successfully.\n");
             }
         }
@@ -88,8 +88,9 @@ public class KalendarzUI {
         int day = scan.nextInt() - 1;
         scan.nextLine();
         if (day >= 0 && day <= 6) {
-            ArrayList<Spotkanie> meetings = calendar.getMeetingsByDay(day);
-            displayMeetings(calendar, meetings);
+            Predicate<Spotkanie> matchWeekday = meeting -> meeting.getWeekday() == day;
+            ArrayList<Spotkanie> meetings = calendar.filterMeetings(matchWeekday);
+            displayMeetings(meetings);
         }
         else {
             System.out.println("Invalid weekday.\n");
@@ -103,26 +104,108 @@ public class KalendarzUI {
         System.out.println("Please enter the priority (LOW, HIGH, HIGHEST) you wish to display meetings for.");
         Priority priority = inputPriority(scan);
         if (day >= 0 && day <= 6 && priority != Priority.ERROR) {
-            ArrayList<Spotkanie> meetings = calendar.getMeetingsByDayPriority(day, priority);
-            displayMeetings(calendar, meetings);
+            Predicate<Spotkanie> matchWeekday = meeting -> meeting.getWeekday() == day;
+            Predicate<Spotkanie> matchPriority = meeting -> meeting.getPriority() == priority;
+            ArrayList<Spotkanie> meetings = calendar.filterMeetings(matchWeekday.and(matchPriority));
+            displayMeetings(meetings);
         }
         else {
             System.out.println("Invalid weekday or priority.\n");
         }
     }
 
-    private static void handleDisplayBefore(Scanner scan, Kalendarz calendar) {
+    private static void handleDisplayAfter(Scanner scan, Kalendarz calendar) {
         System.out.println("Please enter the weekday (1-7) you wish to display meetings for.");
         int day = scan.nextInt() - 1;
         scan.nextLine();
-        System.out.println("Please enter the hour (format: HH:MM) before which you wish to display meetings for.");
-        Integer[] beforeArgs = inputSplitToInt(scan, ":");
-        if (day >= 0 && day <= 6 && beforeArgs[0] >= 0 && beforeArgs[1] >= 0 && beforeArgs[0] < 24 && beforeArgs[1] < 60) {
-            ArrayList<Spotkanie> meetings = calendar.getMeetingsByDayBefore(day, beforeArgs[0], beforeArgs[1]);
-            displayMeetings(calendar, meetings);
+        System.out.println("Please enter the hour (format: HH:MM) after which you wish to display meetings for.");
+        Integer[] afterArgs = inputSplitToInt(scan, ":");
+        if (day >= 0 && day <= 6 && afterArgs[0] >= 0 && afterArgs[1] >= 0 && afterArgs[0] < 24 && afterArgs[1] < 60) {
+
+            Predicate<Spotkanie> matchWeekday = meeting -> meeting.getWeekday() == day;
+            Predicate<Spotkanie> afterTime = meeting -> {
+
+                if (meeting.getStartTime().getHour() == afterArgs[0]) {
+                    return meeting.getStartTime().getMinute() >= afterArgs[1];
+                }
+                return meeting.getStartTime().getHour() >= afterArgs[0];
+            };
+
+            ArrayList<Spotkanie> meetings = calendar.filterMeetings(matchWeekday.and(afterTime));
+            displayMeetings(meetings);
         }
         else {
             System.out.println("Invalid weekday or time constraint.\n");
+        }
+    }
+
+    private static void handleDisplayBetween(Scanner scan, Kalendarz calendar) {
+        System.out.println("Please enter the weekday (1-7) you wish to display meetings for.");
+        int day = scan.nextInt() - 1;
+        scan.nextLine();
+        System.out.println("Please enter the hour (format: HH:MM) AFTER which you wish to display meetings for.");
+        Integer[] afterArgs = inputSplitToInt(scan, ":");
+        System.out.println("Please enter the hour (format: HH:MM) BEFORE which you wish to display meetings for.");
+        Integer[] beforeArgs = inputSplitToInt(scan, ":");
+        if (day >= 0 && day <= 6) {
+            if ((beforeArgs[0] >= 0 && beforeArgs[1] >= 0 && beforeArgs[0] < 24 && beforeArgs[1] < 60) &&
+                    afterArgs[0] >= 0 && afterArgs[1] >= 0 && afterArgs[0] < 24 && afterArgs[1] < 60) {
+
+                Predicate<Spotkanie> matchWeekday = meeting -> meeting.getWeekday() == day;
+
+                Predicate<Spotkanie> afterTime = meeting -> {
+                    if (meeting.getStartTime().getHour() == afterArgs[0]) {
+                        return meeting.getStartTime().getMinute() >= afterArgs[1];
+                    }
+                    return meeting.getStartTime().getHour() >= afterArgs[0];
+                };
+
+                Predicate<Spotkanie> beforeTime = meeting -> {
+                    if (meeting.getEndTime().getHour() == beforeArgs[0]) {
+                        return meeting.getEndTime().getMinute() <= beforeArgs[1];
+                    }
+                    return meeting.getEndTime().getHour() <= beforeArgs[0];
+                };
+
+                ArrayList<Spotkanie> meetings = calendar.filterMeetings(matchWeekday.and(beforeTime).and(afterTime));
+                displayMeetings(meetings);
+            }
+            else {
+                System.out.println("Invalid timeframe.\n");
+            }
+        }
+        else {
+            System.out.println("Invalid weekday.\n");
+        }
+    }
+
+    private static void handleDisplayPriorityAfter(Scanner scan, Kalendarz calendar) {
+        System.out.println("Please enter the weekday (1-7) you wish to display meetings for.");
+        int day = scan.nextInt() - 1;
+        scan.nextLine();
+        System.out.println("Please enter the priority (LOW, HIGH, HIGHEST) you wish to display meetings for.");
+        Priority priority = inputPriority(scan);
+        System.out.println("Please enter the hour (format: HH:MM) after which you wish to display meetings for.");
+        Integer[] afterArgs = inputSplitToInt(scan, ":");
+        if (day >= 0 && day <= 6 && priority != Priority.ERROR) {
+            if (afterArgs[0] >= 0 && afterArgs[1] >= 0 && afterArgs[0] < 24 && afterArgs[1] < 60) {
+                Predicate<Spotkanie> matchWeekday = meeting -> meeting.getWeekday() == day;
+                Predicate<Spotkanie> matchPriority = meeting -> meeting.getPriority() == priority;
+                Predicate<Spotkanie> afterTime = meeting -> {
+                    if (meeting.getStartTime().getHour() == afterArgs[0]) {
+                        return meeting.getStartTime().getMinute() >= afterArgs[1];
+                    }
+                    return meeting.getStartTime().getHour() >= afterArgs[0];
+                };
+                ArrayList<Spotkanie> meetings = calendar.filterMeetings(matchWeekday.and(matchPriority).and(afterTime));
+                displayMeetings(meetings);
+            }
+            else {
+                System.out.println("Invalid time contraint.\n");
+            }
+        }
+        else {
+            System.out.println("Invalid weekday or priority.\n");
         }
     }
 
@@ -148,25 +231,23 @@ public class KalendarzUI {
                     2. Delete meeting by ID
                     3. Display all meetings by weekday (1-7)
                     4. Display all meetings of a given priority by weekday (1-7)
-                    5. Display all meetings before a given hour by weekday (1-7)
-                    6. Add 7 placeholder meetings.
-                    7. Exit.
+                    5. Display all meetings after a given hour by weekday (1-7)
+                    6. Display all meetings between two given hours by weekday (1-7)
+                    7. Display all meetings of a given priority before a given hour by weekday (1-7)
+                    8. Add 7 placeholder meetings.
+                    9. Exit.
                     Please type the appropriate number and press Enter.""");
             String userInput = scan.nextLine();
             switch (userInput.trim()) {
-                case "7" -> continueLoop = false;
-
+                case "9" -> continueLoop = false;
                 case "1" -> handleAdd(scan, calendar);
-
                 case "2" -> handleDel(scan, calendar);
-
                 case "3" -> handleDisplay(scan, calendar);
-
                 case "4" -> handleDisplayPriority(scan, calendar);
-
-                case "5" -> handleDisplayBefore(scan, calendar);
-
-                case "6" -> handleAddSeven(calendar);
+                case "5" -> handleDisplayAfter(scan, calendar);
+                case "6" -> handleDisplayBetween(scan, calendar);
+                case "7" -> handleDisplayPriorityAfter(scan, calendar);
+                case "8" -> handleAddSeven(calendar);
 
                 default -> System.out.println("Invalid input.\n");
             }

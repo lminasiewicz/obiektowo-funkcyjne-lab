@@ -2,21 +2,23 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 public class Spotkanie {
-    private static final LocalTime earliestTime = LocalTime.of(7, 30);
+    private static final LocalTime EARLIEST_TIME = LocalTime.of(7, 30);
     private Integer id;
-    private final String name;
-    private final LocalDate date;
-    private final LocalTime startTime;
-    private final LocalTime endTime;
-    private final Priority priority;
+    private String name;
+    private LocalDate date;
+    private LocalTime startTime;
+    private LocalTime endTime;
+    private Priority priority;
+    private int weekday;
 
     public Spotkanie(int day, int month, int year, int startHour, int startMinute, int endHour,
-                     int endMinute, Priority priority, String name) {
+                     int endMinute, Priority priority, String name, int weekday) {
         this.name = name;
         this.date = LocalDate.of(year, month, day);
         this.startTime = LocalTime.of(startHour, startMinute);
         this.endTime = LocalTime.of(endHour, endMinute);
         this.priority = priority;
+        this.weekday = weekday;
     }
 
     public Spotkanie() {
@@ -26,11 +28,12 @@ public class Spotkanie {
         this.startTime = LocalTime.of(0, 0);
         this.endTime = LocalTime.of(0, 0);
         this.priority = Priority.LOW;
+        this.weekday = -1;
         this.id = -1;
     }
 
     public static LocalTime getEarliestTime() {
-        return earliestTime;
+        return EARLIEST_TIME;
     }
 
     public LocalTime getStartTime() {
@@ -61,23 +64,33 @@ public class Spotkanie {
         this.id = id;
     }
 
+    public int getWeekday() { return this.weekday; }
+
     @Override
     public String toString() {
+        String startMinute = String.valueOf(this.startTime.getMinute());
+        String endMinute = String.valueOf(this.endTime.getMinute());
+        if (startMinute.equals("0")) {
+            startMinute = "00";
+        }
+        if (endMinute.equals("0")) {
+            endMinute = "00";
+        }
         String data = this.date.getDayOfMonth() + "." + this.date.getMonth() + "." + this.date.getYear() +
-                " at " + this.startTime.getHour() + ":" + this.startTime.getMinute() + " - " +
-                this.endTime.getHour() + ":" + this.endTime.getMinute() + "\nNazwa: " + this.name;
+                " at " + this.startTime.getHour() + ":" + startMinute + " - " +
+                this.endTime.getHour() + ":" + endMinute + "\nNazwa: " + this.name;
         if (this.id != null) {
-            return "Spotkanie ID:" + this.id + "\non " + data + "\nPRIORITY: " + this.getPriority().name();
+            return "Spotkanie ID:" + this.id + "\non " + data + "\nPRIORITY: " + this.priority.name();
         }
         else {
-            return "Spotkanie" + data + "\nPRIORITY: " + this.getPriority().name();
+            return "Spotkanie" + data + "\nPRIORITY: " + this.priority.name();
         }
     }
 
-    public boolean equals(Spotkanie obj) {
+    public boolean equals(Object obj) {
         if (obj == null) return false;
         if (obj == this) return true;
-        if (obj.id == null) return false;
-        return obj.id == this.id;
+        if (obj instanceof Spotkanie && ((Spotkanie) obj).id == null) return false;
+        return ((Spotkanie) obj).id == this.id;
     }
 }
